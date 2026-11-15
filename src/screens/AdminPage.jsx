@@ -1005,3 +1005,4 @@ function ProductEditModal({ product, categories, isNew = false, onClose, onSave 
     </div>
   );
 }
+

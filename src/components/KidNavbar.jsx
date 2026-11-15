@@ -17,13 +17,16 @@ export default function KidNavbar({
 }) {
   const { categories } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false);
 
   const handleCategoryClick = (catLabel) => {
+    setCategoriesDropdownOpen(false);
     if (onSelectCategory) onSelectCategory(catLabel);
     if (onNavigate) onNavigate('category', catLabel);
   };
 
   const handlePromotionsClick = () => {
+    setCategoriesDropdownOpen(false);
     if (onNavigate) onNavigate('promotions');
   };
 
@@ -121,7 +124,8 @@ export default function KidNavbar({
       </div>
 
       {/* Category nav */}
-      <nav className="flex items-center justify-start md:justify-center gap-4 md:gap-8 px-6 md:px-16 py-3 border-t border-border overflow-x-auto no-scrollbar">
+      <nav className="flex items-center justify-start md:justify-center gap-3 md:gap-6 px-6 md:px-16 py-3 border-t border-border overflow-x-auto no-scrollbar relative">
+        {/* ACCUEIL */}
         <button
           type="button"
           onClick={() => onNavigate && onNavigate('home')}
@@ -134,6 +138,56 @@ export default function KidNavbar({
           {t('Accueil')}
         </button>
 
+        {/* CATÉGORIES (PAGE PRINCIPALE DES CATÉGORIES) */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => handleCategoryClick('Tous')}
+            onMouseEnter={() => setCategoriesDropdownOpen(true)}
+            className={`text-sm font-headings font-extrabold whitespace-nowrap flex items-center gap-1.5 px-3 py-1 rounded-xl transition-all cursor-pointer ${
+              activePage === 'category'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'bg-input text-foreground hover:bg-primary/20 hover:text-primary'
+            }`}
+          >
+            <span>🏷️</span>
+            <span>{t('Catégories')}</span>
+            <span className="text-[10px]">▼</span>
+          </button>
+
+          {/* Mega Dropdown menu for categories */}
+          {categoriesDropdownOpen && (
+            <div
+              onMouseLeave={() => setCategoriesDropdownOpen(false)}
+              className="absolute left-0 top-full mt-2 w-72 bg-white border border-border rounded-2xl shadow-xl p-3 z-50 animate-scaleUp divide-y divide-border/60"
+            >
+              <div className="pb-2">
+                <button
+                  onClick={() => handleCategoryClick('Tous')}
+                  className="w-full text-left px-3 py-2 rounded-xl hover:bg-primary/10 text-xs font-headings font-bold text-primary flex items-center justify-between"
+                >
+                  <span>{t('🌟 Toutes les catégories (Grille complète)')}</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <div className="py-2 space-y-1">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleCategoryClick(cat.label)}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-muted text-xs font-body font-bold text-foreground flex items-center gap-2.5 transition-colors"
+                  >
+                    <Icon i={cat.icon} size={15} className="text-primary" />
+                    <span>{cat.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Direct links to each of the 6 categories */}
         {categories.map((cat) => {
           const isCategoryActive = activePage === 'category' && selectedCategory === cat.label;
           return (

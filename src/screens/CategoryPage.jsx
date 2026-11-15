@@ -7,13 +7,13 @@ import Image from '@global/Image';
 import { useStore } from '@/context/StoreContext';
 import { t } from '@global/t';
 
-export const displayName = 'Kid First — Page Catégorie';
+export const displayName = 'Kid First — Page Catégories';
 export const screenSize = 'desktop';
 
 const ageGroups = ['Tous les âges', 'Bébé (0-2 ans)', 'Petit (3-5 ans)', 'Junior (6-10 ans)'];
 
 export default function CategoryPage({
-  initialCategory = 'Vêtements',
+  initialCategory = 'Tous',
   cartCount = 3,
   onNavigate,
   onOpenCart,
@@ -22,7 +22,8 @@ export default function CategoryPage({
   onOpenWhatsApp
 }) {
   const { products, categories } = useStore();
-  const [currentCategory, setCurrentCategory] = useState(initialCategory);
+  const [currentCategory, setCurrentCategory] = useState(initialCategory || 'Tous');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('Tous');
   const [selectedAge, setSelectedAge] = useState('Tous les âges');
   const [maxPrice, setMaxPrice] = useState(60);
   const [onlyInStock, setOnlyInStock] = useState(false);
@@ -30,14 +31,23 @@ export default function CategoryPage({
   const [selectedSize, setSelectedSize] = useState('Toutes');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Find category info
-  const categoryMeta = useMemo(() => {
-    return (
-      categories.find(
-        (c) => c.label.toLowerCase() === currentCategory.toLowerCase()
-      ) || categories[0]
-    );
+  // When changing category, reset subcategory
+  const handleSelectCategory = (catLabel) => {
+    setCurrentCategory(catLabel);
+    setSelectedSubcategory('Tous');
+  };
+
+  // Find active category meta
+  const activeCategoryMeta = useMemo(() => {
+    if (currentCategory === 'Tous') return null;
+    return categories.find((c) => c.label.toLowerCase() === currentCategory.toLowerCase()) || null;
   }, [categories, currentCategory]);
+
+  // Subcategories list for active category
+  const activeSubcategories = useMemo(() => {
+    if (!activeCategoryMeta || !activeCategoryMeta.subcategories) return [];
+    return activeCategoryMeta.subcategories;
+  }, [activeCategoryMeta]);
 
   // Available sizes for currently selected category
   const availableSizes = useMemo(() => {
@@ -57,6 +67,14 @@ export default function CategoryPage({
       .filter((product) => {
         // Category filter
         if (currentCategory !== 'Tous' && product.category !== currentCategory) {
+          return false;
+        }
+        // Subcategory filter
+        if (
+          selectedSubcategory !== 'Tous' &&
+          !selectedSubcategory.startsWith('Tous') &&
+          product.subcategory !== selectedSubcategory
+        ) {
           return false;
         }
         // Age group filter
@@ -84,9 +102,11 @@ export default function CategoryPage({
         if (sortBy === 'new') return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
         return (b.reviewsCount || 0) - (a.reviewsCount || 0); // popular
       });
-  }, [products, currentCategory, selectedAge, maxPrice, selectedSize, onlyInStock, sortBy]);
+  }, [products, currentCategory, selectedSubcategory, selectedAge, maxPrice, selectedSize, onlyInStock, sortBy]);
 
   const resetFilters = () => {
+    setCurrentCategory('Tous');
+    setSelectedSubcategory('Tous');
     setSelectedAge('Tous les âges');
     setMaxPrice(60);
     setSelectedSize('Toutes');
@@ -100,15 +120,14 @@ export default function CategoryPage({
         cartCount={cartCount}
         activePage="category"
         selectedCategory={currentCategory}
-        onSelectCategory={(cat) => setCurrentCategory(cat)}
+        onSelectCategory={handleSelectCategory}
         onNavigate={onNavigate}
         onOpenCart={onOpenCart}
       />
 
-      {/* Main Content */}
-      <main className="flex-1 px-4 md:px-16 py-6">
+      <main className="flex-1 px-4 md:px-16 py-8 space-y-8">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs font-body text-muted-foreground mb-6">
+        <nav className="flex items-center gap-2 text-xs font-body text-muted-foreground">
           <button
             onClick={() => onNavigate && onNavigate('home')}
             className="hover:text-primary transition-colors cursor-pointer"
@@ -116,76 +135,162 @@ export default function CategoryPage({
             {t('Accueil')}
           </button>
           <span>/</span>
-          <span className="hover:text-primary transition-colors cursor-pointer" onClick={() => setCurrentCategory('Tous')}>
+          <button
+            onClick={() => handleSelectCategory('Tous')}
+            className={`cursor-pointer transition-colors ${currentCategory === 'Tous' ? 'text-foreground font-bold' : 'hover:text-primary'}`}
+          >
             {t('Catégories')}
-          </span>
-          <span>/</span>
-          <span className="text-foreground font-bold">{currentCategory}</span>
+          </button>
+          {currentCategory !== 'Tous' && (
+            <>
+              <span>/</span>
+              <span className="text-foreground font-bold">{currentCategory}</span>
+            </>
+          )}
         </nav>
 
         {/* Category Header Banner */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 border border-border p-6 md:p-10 mb-8 shadow-xs">
-          <div className="max-w-2xl relative z-10">
-            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-xs px-3 py-1 rounded-xl text-xs font-bold text-foreground mb-3">
-              <Icon i={categoryMeta.icon} size={15} className="text-primary" />
-              <span>{t('Univers Kid First')}</span>
+        <section className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 border border-border p-6 md:p-10 shadow-xs">
+          <div className="max-w-2xl relative z-10 space-y-3">
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-xs px-3.5 py-1.5 rounded-xl text-xs font-headings font-extrabold text-foreground shadow-xs">
+              <Icon i={activeCategoryMeta ? activeCategoryMeta.icon : 'shirt'} size={15} className="text-primary" />
+              <span>{activeCategoryMeta ? t(`Rayon : ${activeCategoryMeta.label}`) : t('Le Grand Catalogue Kid First')}</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-headings font-extrabold text-foreground tracking-tight mb-3">
-              {currentCategory === 'Tous' ? t('Tous nos articles enfants') : categoryMeta.label}
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground font-body leading-relaxed max-w-xl">
+
+            <h1 className="text-3xl md:text-5xl font-headings font-extrabold text-foreground tracking-tight leading-tight">
               {currentCategory === 'Tous'
-                ? t('Découvrez l\'intégralité de nos collections pour bébés et enfants de 0 à 14 ans.')
-                : categoryMeta.tagline}
+                ? t('Toutes les Catégories & Rayons')
+                : t(`Rayon ${activeCategoryMeta?.label}`)}
+            </h1>
+
+            <p className="text-sm md:text-base text-muted-foreground font-body leading-relaxed max-w-xl">
+              {activeCategoryMeta
+                ? activeCategoryMeta.tagline
+                : t('Explorez nos 6 univers conçus pour le confort, l\'éveil et le sourire des enfants de 0 à 14 ans.')}
             </p>
+
+            {currentCategory !== 'Tous' && (
+              <button
+                onClick={() => handleSelectCategory('Tous')}
+                className="inline-flex items-center gap-1.5 text-xs font-headings font-bold text-primary hover:underline pt-2 cursor-pointer"
+              >
+                <span>← {t('Voir la grille des 6 univers')}</span>
+              </button>
+            )}
           </div>
 
-          <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 w-64 h-40 rounded-2xl overflow-hidden shadow-md border-2 border-white">
-            <Image
-              src={categoryMeta.heroImage}
-              alt={categoryMeta.label}
-              className="w-full h-full object-cover"
-            />
+          {activeCategoryMeta && (
+            <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 w-72 h-44 rounded-2xl overflow-hidden shadow-lg border-2 border-white">
+              <Image
+                src={activeCategoryMeta.heroImage}
+                alt={activeCategoryMeta.label}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </section>
+
+        {/* PRD §6.2 : VISUAL CATEGORY CARDS GRID (LES 6 UNIVERS) */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl md:text-2xl font-headings font-extrabold text-foreground">
+              {t('Les 6 Univers Enfants (PRD §6.2)')}
+            </h2>
+            {currentCategory !== 'Tous' && (
+              <button
+                onClick={() => handleSelectCategory('Tous')}
+                className="text-xs font-bold text-primary hover:underline cursor-pointer"
+              >
+                {t('Réinitialiser sur "Tout afficher"')}
+              </button>
+            )}
           </div>
-        </div>
 
-        {/* Category Fast Switcher Pills */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-6 no-scrollbar">
-          <button
-            type="button"
-            onClick={() => setCurrentCategory('Tous')}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all cursor-pointer ${
-              currentCategory === 'Tous'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-foreground hover:bg-muted'
-            }`}
-          >
-            {t('🌟 Tout afficher')} ({products.length})
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setCurrentCategory(cat.label)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all cursor-pointer ${
-                currentCategory === cat.label
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-card border border-border text-foreground hover:bg-muted'
-              }`}
-            >
-              <Icon i={cat.icon} size={14} />
-              <span>{cat.label}</span>
-            </button>
-          ))}
-        </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((cat) => {
+              const isActive = currentCategory === cat.label;
+              const prodCount = products.filter((p) => p.category === cat.label).length;
 
-        {/* Layout: Sidebar Filters + Products Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          {/* Mobile Filter Toggle Button */}
-          <div className="lg:hidden flex justify-between items-center bg-card p-4 rounded-2xl border border-border mb-2">
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => handleSelectCategory(cat.label)}
+                  className={`flex flex-col p-3 rounded-2xl border transition-all duration-300 cursor-pointer group ${
+                    isActive
+                      ? 'bg-primary/10 border-primary ring-2 ring-primary shadow-md scale-102'
+                      : 'bg-card border-border hover:border-primary/50 hover:shadow-sm'
+                  }`}
+                >
+                  <div className="w-full aspect-square rounded-xl overflow-hidden bg-input relative mb-2.5">
+                    <Image
+                      src={cat.heroImage}
+                      prompt={cat.prompt}
+                      alt={cat.label}
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
+                    />
+                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-xs p-1.5 rounded-lg shadow-xs text-primary">
+                      <Icon i={cat.icon} size={14} />
+                    </div>
+                  </div>
+
+                  <span className="font-headings font-extrabold text-sm text-foreground group-hover:text-primary transition-colors">
+                    {cat.label}
+                  </span>
+
+                  <span className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                    {cat.examples}
+                  </span>
+
+                  <span className="text-[10px] font-bold text-primary mt-1">
+                    {prodCount} {t('articles')}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* SUBCATEGORY FILTER PILLS (when a category is selected) */}
+        {activeSubcategories.length > 0 && (
+          <section className="bg-card border border-border rounded-2xl p-4 space-y-2">
+            <span className="text-xs font-headings font-extrabold text-muted-foreground uppercase tracking-wider block">
+              {t(`Sous-catégories de ${currentCategory} :`)}
+            </span>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+              <button
+                onClick={() => setSelectedSubcategory('Tous')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-headings font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedSubcategory === 'Tous'
+                    ? 'bg-secondary text-secondary-foreground shadow-xs'
+                    : 'bg-input text-foreground hover:bg-muted'
+                }`}
+              >
+                {t('Tout')}
+              </button>
+              {activeSubcategories.map((sub, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedSubcategory(sub)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-headings font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    selectedSubcategory === sub
+                      ? 'bg-secondary text-secondary-foreground shadow-xs'
+                      : 'bg-input text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* LAYOUT: SIDEBAR FILTERS (PRD §6.5) + PRODUCTS CATALOG GRID */}
+        <section className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden flex justify-between items-center bg-card p-4 rounded-2xl border border-border">
             <button
               onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-              className="flex items-center gap-2 text-xs font-headings font-bold text-foreground bg-input px-4 py-2 rounded-xl"
+              className="flex items-center gap-2 text-xs font-headings font-bold text-foreground bg-input px-4 py-2 rounded-xl cursor-pointer"
             >
               <Icon i="settings" size={14} />
               <span>{t('Filtres et tri')}</span>
@@ -195,13 +300,13 @@ export default function CategoryPage({
             </span>
           </div>
 
-          {/* Left Sidebar Filters */}
+          {/* Left Sidebar Filters (Desktop & Mobile) */}
           <aside className={`lg:block ${mobileFilterOpen ? 'block' : 'hidden'} lg:col-span-1 bg-card border border-border rounded-3xl p-6 shadow-xs space-y-6 sticky top-28`}>
             <div className="flex items-center justify-between pb-4 border-b border-border">
               <div className="flex items-center gap-2">
                 <Icon i="settings" size={17} className="text-primary" />
                 <h3 className="font-headings font-extrabold text-base text-foreground">
-                  {t('Filtres')}
+                  {t('Filtres catalogue')}
                 </h3>
               </div>
               <button
@@ -213,7 +318,7 @@ export default function CategoryPage({
               </button>
             </div>
 
-            {/* Tranche d'âge */}
+            {/* Tranche d'âge (PRD §6.5) */}
             <div>
               <label className="text-xs font-headings font-bold text-foreground uppercase tracking-wider block mb-3">
                 {t('Tranche d\'âge')}
@@ -262,7 +367,7 @@ export default function CategoryPage({
               </div>
             </div>
 
-            {/* Budget / Prix maximum */}
+            {/* Budget / Prix max */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-xs font-headings font-bold text-foreground uppercase tracking-wider">
@@ -305,11 +410,16 @@ export default function CategoryPage({
           {/* Main Products Grid */}
           <div className="lg:col-span-3 space-y-6">
             {/* Top Toolbar: Count + Sort */}
-            <div className="bg-card border border-border rounded-2xl px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div className="bg-card border border-border rounded-2xl px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
               <div className="text-sm font-body">
                 <span className="font-extrabold text-foreground">{filteredProducts.length}</span>{' '}
-                <span className="text-muted-foreground">{t('articles trouvés pour')}</span>{' '}
+                <span className="text-muted-foreground">{t('produits affichés dans')}</span>{' '}
                 <span className="font-bold text-primary">« {currentCategory} »</span>
+                {selectedSubcategory !== 'Tous' && !selectedSubcategory.startsWith('Tous') && (
+                  <span className="text-xs bg-secondary text-secondary-foreground font-bold px-2 py-0.5 rounded ml-2">
+                    {selectedSubcategory}
+                  </span>
+                )}
               </div>
 
               {/* Sort By Dropdown */}
@@ -364,10 +474,10 @@ export default function CategoryPage({
               </div>
             )}
           </div>
-        </div>
+        </section>
       </main>
 
-      <KidFooter onOpenWhatsApp={onOpenWhatsApp} />
+      <KidFooter onOpenWhatsApp={onOpenWhatsApp} onNavigate={onNavigate} />
     </div>
   );
 }
