@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  /* used via utility-classes, bg-background, text-primary, and many more */
+  --color-background: #FFFDF7;
+  --color-foreground: #1A1A2E;
+  --color-border: #E8E4DC;
+  --color-input: #F5F2EA;
+  --color-primary: #78C8E8;
+  --color-primary-foreground: #1A1A2E;
+  --color-secondary: #FFD76A;
+  --color-secondary-foreground: #1A1A2E;
+  --color-muted: #F0EDE5;
+  --color-muted-foreground: #8A8478;
+  --color-accent: #F4A261;
+  --color-accent-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: #1A1A2E;
+  --color-tag: #E8F7FD;
+  --color-tag-foreground: #2A8FAB;
+
+  /* Radius variables */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+  --radius: var(--radius-sm);
+
+  /* Font variables */
+  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-headings: 'Nunito', system-ui, -apple-system, sans-serif;
+
+  /* Font sizes */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 34px;
+  --text-4xl: 46px;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  margin: 0;
+  padding: 0;
+}
