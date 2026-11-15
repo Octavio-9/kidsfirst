@@ -1,50 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '@global/Icon';
 import Image from '@global/Image';
+import { useStore } from '@/context/StoreContext';
 import { t } from '@global/t';
 
 export const displayName = 'Hero Banner';
 export const shortDescription = 'Full-width promotional hero banner';
 
-const slides = [
-  {
-    badge: 'Nouveautés 2026',
-    titleLine1: 'La mode enfant,',
-    titleLine2: 'toujours en premier',
-    desc: 'Découvrez notre nouvelle collection de vêtements et accessoires pour enfants de 0 à 14 ans.',
-    primaryBtn: 'Découvrir la collection',
-    secondaryBtn: 'Voir les promos',
-    prompt: 'Kids playing in a bright colorful clothing store, pastel tones, soft lighting, joyful children wearing colorful outfits, editorial fashion photography',
-  },
-  {
-    badge: 'Spécial Printemps',
-    titleLine1: 'Confort & Douceur',
-    titleLine2: 'pour vos tout-petits',
-    desc: 'Des matières 100% coton biologique, douces et résistantes pour accompagner chaque aventure.',
-    primaryBtn: 'Voir la gamme Bébé',
-    secondaryBtn: 'Guide des tailles',
-    prompt: 'Baby clothes onesies soft pastel photography white background',
-  },
-  {
-    badge: 'Offre exclusive',
-    titleLine1: 'Jusqu\'à -40%',
-    titleLine2: 'sur les Chaussures & Baskets',
-    desc: 'Préparez l\'école et les sorties avec nos modèles confortables testés par des pédiatres.',
-    primaryBtn: 'Profiter des réductions',
-    secondaryBtn: 'Toutes les chaussures',
-    prompt: 'Cute kids shoes sneakers on white background, colorful, pastel photography',
-  }
-];
-
 export default function HeroBanner({ onExploreCollection, onExplorePromos }) {
+  const { siteContent } = useStore();
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const heroContent = siteContent?.hero || {};
+
+  const slides = [
+    {
+      badge: heroContent.badge || 'Nouveautés 2026',
+      titleLine1: heroContent.titleLine1 || 'La mode enfant,',
+      titleLine2: heroContent.titleLine2 || 'toujours en premier',
+      desc: heroContent.desc || 'Découvrez notre nouvelle collection de vêtements et accessoires pour enfants de 0 à 14 ans.',
+      primaryBtn: heroContent.primaryBtn || 'Découvrir la collection',
+      secondaryBtn: heroContent.secondaryBtn || 'Voir les promos',
+      imageUrl: heroContent.imageUrl,
+      prompt: heroContent.prompt || 'Kids playing in a bright colorful clothing store, pastel tones, soft lighting, joyful children wearing colorful outfits, editorial fashion photography',
+    },
+    {
+      badge: 'Spécial Printemps',
+      titleLine1: 'Confort & Douceur',
+      titleLine2: 'pour vos tout-petits',
+      desc: 'Des matières 100% coton biologique, douces et résistantes pour accompagner chaque aventure.',
+      primaryBtn: 'Voir la gamme Bébé',
+      secondaryBtn: 'Guide des tailles',
+      prompt: 'Baby clothes onesies soft pastel photography white background',
+    },
+    {
+      badge: 'Offre exclusive',
+      titleLine1: 'Jusqu\'à -40%',
+      titleLine2: 'sur les Chaussures & Baskets',
+      desc: 'Préparez l\'école et les sorties avec nos modèles confortables testés par des pédiatres.',
+      primaryBtn: 'Profiter des réductions',
+      secondaryBtn: 'Toutes les chaussures',
+      prompt: 'Cute kids shoes sneakers on white background, colorful, pastel photography',
+    }
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   const slide = slides[currentSlide];
 
@@ -53,6 +58,7 @@ export default function HeroBanner({ onExploreCollection, onExplorePromos }) {
       <Image
         key={currentSlide}
         ar="21:9"
+        src={slide.imageUrl}
         prompt={slide.prompt}
         alt={slide.titleLine1}
         className="w-full h-full object-cover transition-all duration-700 ease-in-out"
@@ -83,13 +89,13 @@ export default function HeroBanner({ onExploreCollection, onExplorePromos }) {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => onExploreCollection && onExploreCollection()}
-              className="bg-secondary hover:bg-[#ffe085] text-secondary-foreground font-body font-extrabold px-6 py-3.5 rounded-2xl text-sm shadow-md transition-all hover:scale-105 active:scale-95"
+              className="bg-secondary hover:bg-[#ffe085] text-secondary-foreground font-body font-extrabold px-6 py-3.5 rounded-2xl text-sm shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
               {t(slide.primaryBtn)}
             </button>
             <button
               onClick={() => onExplorePromos && onExplorePromos()}
-              className="bg-white/20 hover:bg-white/30 text-white font-body font-bold px-6 py-3.5 rounded-2xl text-sm border border-white/40 backdrop-blur-sm transition-all hover:scale-105 active:scale-95"
+              className="bg-white/20 hover:bg-white/30 text-white font-body font-bold px-6 py-3.5 rounded-2xl text-sm border border-white/40 backdrop-blur-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
               {t(slide.secondaryBtn)}
             </button>
@@ -100,7 +106,7 @@ export default function HeroBanner({ onExploreCollection, onExplorePromos }) {
       {/* Slide navigation controls */}
       <button
         onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md text-white items-center justify-center transition-all"
+        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md text-white items-center justify-center transition-all cursor-pointer"
         aria-label="Slide précédent"
       >
         ‹
@@ -108,7 +114,7 @@ export default function HeroBanner({ onExploreCollection, onExplorePromos }) {
 
       <button
         onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md text-white items-center justify-center transition-all"
+        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md text-white items-center justify-center transition-all cursor-pointer"
         aria-label="Slide suivant"
       >
         ›
@@ -121,7 +127,7 @@ export default function HeroBanner({ onExploreCollection, onExplorePromos }) {
             key={i}
             onClick={() => setCurrentSlide(i)}
             aria-label={`Slide ${i + 1}`}
-            className={`rounded-full transition-all duration-300 ${
+            className={`rounded-full transition-all duration-300 cursor-pointer ${
               i === currentSlide ? 'w-8 h-2.5 bg-secondary' : 'w-2.5 h-2.5 bg-white/60 hover:bg-white'
             }`}
           />
@@ -130,4 +136,3 @@ export default function HeroBanner({ onExploreCollection, onExplorePromos }) {
     </div>
   );
 }
-

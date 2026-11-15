@@ -370,3 +370,4 @@ export const allProducts = [
 ];
 
 export const promotionProducts = allProducts.filter((p) => p.originalPrice || p.discountPercent);
+

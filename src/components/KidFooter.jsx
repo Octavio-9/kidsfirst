@@ -1,12 +1,20 @@
 import React from 'react';
 import Icon from '@global/Icon';
 import KidLogo from '@components/KidLogo';
+import { useStore } from '@/context/StoreContext';
 import { t } from '@global/t';
 
 export const displayName = 'Kid First Footer';
 export const shortDescription = 'Footer with links, contact and social icons';
 
-export default function KidFooter({ onOpenWhatsApp }) {
+export default function KidFooter({ onOpenWhatsApp, onNavigate }) {
+  const { siteContent } = useStore();
+  const contact = siteContent?.contact || {
+    whatsapp: '+33 6 12 34 56 78',
+    email: 'contact@kidfirst.fr',
+    hours: 'Lun–Sam, 9h–18h'
+  };
+
   return (
     <footer className="bg-foreground text-white mt-16 px-6 md:px-16 py-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
@@ -51,16 +59,24 @@ export default function KidFooter({ onOpenWhatsApp }) {
         {/* Aide & Infos */}
         <div>
           <h4 className="text-base font-headings font-extrabold mb-4 text-[#78C8E8]">
-            {t('Aide & Infos')}
+            {t('Aide & Gestion')}
           </h4>
           <ul className="space-y-2.5">
-            {[t('Foire aux questions (FAQ)'), t('Livraison & Retours'), t('Suivi de commande'), t('Guide des tailles enfants'), t('Mentions légales'), t('Politique de confidentialité')].map((c, i) => (
+            {[t('Foire aux questions (FAQ)'), t('Livraison & Retours'), t('Suivi de commande'), t('Guide des tailles enfants')].map((c, i) => (
               <li key={i}>
                 <a href={`#${c}`} className="text-sm font-body text-white/70 hover:text-secondary transition-colors">
                   {c}
                 </a>
               </li>
             ))}
+            <li>
+              <button
+                onClick={() => onNavigate && onNavigate('admin')}
+                className="text-sm font-body font-bold text-secondary hover:underline flex items-center gap-1.5 cursor-pointer mt-2"
+              >
+                <span>⚙️ {t('Espace Administration (CMS)')}</span>
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -72,20 +88,20 @@ export default function KidFooter({ onOpenWhatsApp }) {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2.5 text-sm font-body text-white/80">
               <Icon i="message-circle" size={16} className="text-emerald-400" />
-              <span>{t('WhatsApp : +33 6 12 34 56 78')}</span>
+              <span>{t('WhatsApp :')} {contact.whatsapp}</span>
             </div>
             <div className="flex items-center gap-2.5 text-sm font-body text-white/80">
               <Icon i="mail" size={16} className="text-[#78C8E8]" />
-              <span>{t('contact@kidfirst.fr')}</span>
+              <span>{contact.email}</span>
             </div>
             <div className="flex items-center gap-2.5 text-sm font-body text-white/80">
               <Icon i="clock" size={16} className="text-secondary" />
-              <span>{t('Lun–Sam, 9h–18h')}</span>
+              <span>{contact.hours}</span>
             </div>
 
             <button
-              onClick={() => onOpenWhatsApp ? onOpenWhatsApp() : window.open('https://wa.me/33612345678', '_blank')}
-              className="mt-2 flex items-center gap-2 bg-secondary hover:bg-[#ffe085] text-secondary-foreground font-body font-bold text-sm px-5 py-3 rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 w-fit"
+              onClick={() => onOpenWhatsApp ? onOpenWhatsApp() : window.open(`https://wa.me/${contact.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}
+              className="mt-2 flex items-center gap-2 bg-secondary hover:bg-[#ffe085] text-secondary-foreground font-body font-bold text-sm px-5 py-3 rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 w-fit cursor-pointer"
             >
               <Icon i="message-circle" size={16} />
               <span>{t('Échanger sur WhatsApp')}</span>
@@ -114,4 +130,3 @@ export default function KidFooter({ onOpenWhatsApp }) {
     </footer>
   );
 }
-

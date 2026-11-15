@@ -4,7 +4,7 @@ import KidFooter from '@components/KidFooter';
 import ProductCard from '@components/ProductCard';
 import Icon from '@global/Icon';
 import Image from '@global/Image';
-import { categoriesList, allProducts } from '@/data/products';
+import { useStore } from '@/context/StoreContext';
 import { t } from '@global/t';
 
 export const displayName = 'Kid First — Page Catégorie';
@@ -21,6 +21,7 @@ export default function CategoryPage({
   onQuickView,
   onOpenWhatsApp
 }) {
+  const { products, categories } = useStore();
   const [currentCategory, setCurrentCategory] = useState(initialCategory);
   const [selectedAge, setSelectedAge] = useState('Tous les âges');
   const [maxPrice, setMaxPrice] = useState(60);
@@ -32,27 +33,27 @@ export default function CategoryPage({
   // Find category info
   const categoryMeta = useMemo(() => {
     return (
-      categoriesList.find(
+      categories.find(
         (c) => c.label.toLowerCase() === currentCategory.toLowerCase()
-      ) || categoriesList[0]
+      ) || categories[0]
     );
-  }, [currentCategory]);
+  }, [categories, currentCategory]);
 
   // Available sizes for currently selected category
   const availableSizes = useMemo(() => {
     const prods = currentCategory === 'Tous'
-      ? allProducts
-      : allProducts.filter((p) => p.category === currentCategory);
+      ? products
+      : products.filter((p) => p.category === currentCategory);
     const sizeSet = new Set();
     prods.forEach((p) => {
       if (p.sizes) p.sizes.forEach((s) => sizeSet.add(s));
     });
     return ['Toutes', ...Array.from(sizeSet)];
-  }, [currentCategory]);
+  }, [products, currentCategory]);
 
   // Filtered and sorted products
   const filteredProducts = useMemo(() => {
-    return allProducts
+    return products
       .filter((product) => {
         // Category filter
         if (currentCategory !== 'Tous' && product.category !== currentCategory) {
@@ -83,7 +84,7 @@ export default function CategoryPage({
         if (sortBy === 'new') return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
         return (b.reviewsCount || 0) - (a.reviewsCount || 0); // popular
       });
-  }, [currentCategory, selectedAge, maxPrice, selectedSize, onlyInStock, sortBy]);
+  }, [products, currentCategory, selectedAge, maxPrice, selectedSize, onlyInStock, sortBy]);
 
   const resetFilters = () => {
     setSelectedAge('Tous les âges');
@@ -110,7 +111,7 @@ export default function CategoryPage({
         <nav className="flex items-center gap-2 text-xs font-body text-muted-foreground mb-6">
           <button
             onClick={() => onNavigate && onNavigate('home')}
-            className="hover:text-primary transition-colors"
+            className="hover:text-primary transition-colors cursor-pointer"
           >
             {t('Accueil')}
           </button>
@@ -153,20 +154,20 @@ export default function CategoryPage({
           <button
             type="button"
             onClick={() => setCurrentCategory('Tous')}
-            className={`px-4 py-2.5 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all cursor-pointer ${
               currentCategory === 'Tous'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-card border border-border text-foreground hover:bg-muted'
             }`}
           >
-            {t('🌟 Tout afficher')} ({allProducts.length})
+            {t('🌟 Tout afficher')} ({products.length})
           </button>
-          {categoriesList.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat.id}
               type="button"
               onClick={() => setCurrentCategory(cat.label)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all cursor-pointer ${
                 currentCategory === cat.label
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-card border border-border text-foreground hover:bg-muted'
@@ -194,7 +195,7 @@ export default function CategoryPage({
             </span>
           </div>
 
-          {/* Left Sidebar Filters (Desktop & Mobile) */}
+          {/* Left Sidebar Filters */}
           <aside className={`lg:block ${mobileFilterOpen ? 'block' : 'hidden'} lg:col-span-1 bg-card border border-border rounded-3xl p-6 shadow-xs space-y-6 sticky top-28`}>
             <div className="flex items-center justify-between pb-4 border-b border-border">
               <div className="flex items-center gap-2">
@@ -206,13 +207,13 @@ export default function CategoryPage({
               <button
                 type="button"
                 onClick={resetFilters}
-                className="text-xs font-body font-bold text-primary hover:underline"
+                className="text-xs font-body font-bold text-primary hover:underline cursor-pointer"
               >
                 {t('Réinitialiser')}
               </button>
             </div>
 
-            {/* Tranche d'âge (PRD §6.5) */}
+            {/* Tranche d'âge */}
             <div>
               <label className="text-xs font-headings font-bold text-foreground uppercase tracking-wider block mb-3">
                 {t('Tranche d\'âge')}
@@ -249,7 +250,7 @@ export default function CategoryPage({
                     key={sz}
                     type="button"
                     onClick={() => setSelectedSize(sz)}
-                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       selectedSize === sz
                         ? 'bg-secondary text-secondary-foreground shadow-xs'
                         : 'bg-input text-foreground hover:bg-muted'
@@ -345,7 +346,7 @@ export default function CategoryPage({
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="bg-primary text-primary-foreground font-body font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs"
+                  className="bg-primary text-primary-foreground font-body font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs cursor-pointer"
                 >
                   {t('Réinitialiser tous les filtres')}
                 </button>

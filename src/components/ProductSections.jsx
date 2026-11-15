@@ -1,6 +1,6 @@
 import React from 'react';
 import ProductCard from '@components/ProductCard';
-import { allProducts, promotionProducts } from '@/data/products';
+import { useStore } from '@/context/StoreContext';
 import { t } from '@global/t';
 
 export const displayName = 'Product Section';
@@ -48,9 +48,11 @@ export default function ProductSections({
   onNavigateToCategory,
   onNavigateToPromos
 }) {
-  const newProducts = allProducts.filter((p) => p.isNew).slice(0, 4);
-  const popularProducts = allProducts.filter((p) => p.rating && p.rating >= 4.8).slice(0, 4);
-  const saleProducts = promotionProducts.slice(0, 4);
+  const { products } = useStore();
+
+  const newProducts = products.filter((p) => p.isNew).slice(0, 4);
+  const popularProducts = products.filter((p) => p.rating && p.rating >= 4.8).slice(0, 4);
+  const saleProducts = products.filter((p) => p.originalPrice || p.discountPercent).slice(0, 4);
 
   return (
     <div className="space-y-4">

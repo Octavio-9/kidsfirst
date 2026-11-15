@@ -3,8 +3,7 @@ import KidNavbar from '@components/KidNavbar';
 import KidFooter from '@components/KidFooter';
 import ProductCard from '@components/ProductCard';
 import Icon from '@global/Icon';
-import Image from '@global/Image';
-import { promotionProducts } from '@/data/products';
+import { useStore } from '@/context/StoreContext';
 import { t } from '@global/t';
 
 export const displayName = 'Kid First — Section Promotions & Bons Plans';
@@ -27,8 +26,17 @@ export default function PromotionsPage({
   onQuickView,
   onOpenWhatsApp
 }) {
+  const { products, siteContent } = useStore();
   const [activeFilter, setActiveFilter] = useState('all');
   const [copiedCode, setCopiedCode] = useState(false);
+
+  const promoSettings = siteContent?.promotionsSettings || {
+    heroTitle: 'Les Grandes Promos',
+    heroSubtitle: 'Jusqu\'à -50% sur les essentiels',
+    heroDesc: 'Habillez et gâtez vos petits avec nos vêtements en coton bio, chaussures confortables et jouets d\'éveil au meilleur prix.',
+    couponCode: 'KID10',
+    couponDiscount: '-10% dès 50 €'
+  };
 
   // Flash Sale Countdown Timer
   const [timeLeft, setTimeLeft] = useState({
@@ -57,14 +65,18 @@ export default function PromotionsPage({
   }, []);
 
   const handleCopyCode = () => {
-    navigator.clipboard?.writeText('KID10');
+    navigator.clipboard?.writeText(promoSettings.couponCode);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
   // Filtered promotions
+  const promoProducts = useMemo(() => {
+    return products.filter((p) => p.originalPrice || (p.discountPercent && p.discountPercent > 0));
+  }, [products]);
+
   const filteredPromos = useMemo(() => {
-    return promotionProducts.filter((p) => {
+    return promoProducts.filter((p) => {
       if (activeFilter === 'all') return true;
       if (activeFilter === '40plus') return (p.discountPercent || 0) >= 40;
       if (activeFilter === 'under20') return p.numericPrice < 20;
@@ -73,7 +85,7 @@ export default function PromotionsPage({
       if (activeFilter === 'chaussures') return p.category === 'Chaussures';
       return true;
     });
-  }, [activeFilter]);
+  }, [promoProducts, activeFilter]);
 
   return (
     <div className="bg-background font-body min-h-screen flex flex-col justify-between">
@@ -89,7 +101,7 @@ export default function PromotionsPage({
         <nav className="flex items-center gap-2 text-xs font-body text-muted-foreground">
           <button
             onClick={() => onNavigate && onNavigate('home')}
-            className="hover:text-primary transition-colors"
+            className="hover:text-primary transition-colors cursor-pointer"
           >
             {t('Accueil')}
           </button>
@@ -108,31 +120,32 @@ export default function PromotionsPage({
               </div>
 
               <h1 className="text-3xl md:text-5xl font-headings font-extrabold text-[#1A1A2E] tracking-tight leading-tight">
-                {t('Les Grandes Promos')} <br />
+                {t(promoSettings.heroTitle)} <br />
                 <span className="text-white drop-shadow-md">
-                  {t('Jusqu\'à -50%')}
-                </span>{' '}
-                {t('sur les essentiels')}
+                  {t(promoSettings.heroSubtitle)}
+                </span>
               </h1>
 
               <p className="text-sm md:text-base text-[#1A1A2E]/80 font-body max-w-lg leading-relaxed">
-                {t('Habillez et gâtez vos petits avec nos vêtements en coton bio, chaussures confortables et jouets d\'éveil au meilleur prix.')}
+                {t(promoSettings.heroDesc)}
               </p>
 
               {/* Coupon Code Pill */}
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-secondary shadow-xs">
                   <span className="text-xs text-muted-foreground font-semibold">{t('Code promo :')}</span>
-                  <span className="text-sm font-mono font-extrabold text-[#1A1A2E] tracking-wider">KID10</span>
+                  <span className="text-sm font-mono font-extrabold text-[#1A1A2E] tracking-wider">
+                    {promoSettings.couponCode}
+                  </span>
                   <button
                     onClick={handleCopyCode}
-                    className="text-xs font-bold text-primary hover:text-primary/80 transition-colors ml-1"
+                    className="text-xs font-bold text-primary hover:text-primary/80 transition-colors ml-1 cursor-pointer"
                   >
                     {copiedCode ? t('✓ Copié !') : t('Copier')}
                   </button>
                 </div>
                 <span className="text-xs text-[#1A1A2E]/80 font-semibold">
-                  {t('(-10% supplémentaires dès 50 € d\'achat)')}
+                  ({promoSettings.couponDiscount})
                 </span>
               </div>
             </div>
@@ -241,7 +254,7 @@ export default function PromotionsPage({
                 <button
                   key={flt.id}
                   onClick={() => setActiveFilter(flt.id)}
-                  className={`px-4 py-2 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all ${
+                  className={`px-4 py-2 rounded-2xl text-xs font-headings font-bold whitespace-nowrap transition-all cursor-pointer ${
                     activeFilter === flt.id
                       ? 'bg-secondary text-secondary-foreground shadow-sm scale-102'
                       : 'bg-card border border-border text-foreground hover:bg-muted'

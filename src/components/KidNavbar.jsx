@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Icon from '@global/Icon';
 import KidLogo from '@components/KidLogo';
-import { categoriesList } from '@/data/products';
+import { useStore } from '@/context/StoreContext';
 import { t } from '@global/t';
 
 export const displayName = 'Kid First Navbar';
@@ -15,6 +15,7 @@ export default function KidNavbar({
   selectedCategory = 'Tous',
   onSelectCategory
 }) {
+  const { categories } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleCategoryClick = (catLabel) => {
@@ -133,7 +134,7 @@ export default function KidNavbar({
           {t('Accueil')}
         </button>
 
-        {categoriesList.map((cat) => {
+        {categories.map((cat) => {
           const isCategoryActive = activePage === 'category' && selectedCategory === cat.label;
           return (
             <button
@@ -163,6 +164,19 @@ export default function KidNavbar({
         >
           <span>🔥</span>
           <span>{t('Promotions & Bons Plans')}</span>
+        </button>
+
+        {/* Admin Direct Quick Access Link */}
+        <button
+          type="button"
+          onClick={() => onNavigate && onNavigate('admin')}
+          className={`text-xs font-body font-extrabold whitespace-nowrap px-2.5 py-1 rounded-lg transition-all cursor-pointer border ${
+            activePage === 'admin'
+              ? 'bg-foreground text-white border-foreground'
+              : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground'
+          }`}
+        >
+          ⚙️ Admin
         </button>
       </nav>
     </header>

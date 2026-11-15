@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { StoreProvider } from '@/context/StoreContext';
 import HomePage from '@screens/HomePage';
 import CategoryPage from '@screens/CategoryPage';
 import PromotionsPage from '@screens/PromotionsPage';
 import AccountPage from '@screens/AccountPage';
+import AdminPage from '@screens/AdminPage';
 import ProductQuickViewModal from '@components/ProductQuickViewModal';
 import CartDrawer from '@components/CartDrawer';
 import WhatsAppSupportModal from '@components/WhatsAppSupportModal';
 import Icon from '@global/Icon';
 import { t } from '@global/t';
 
-export default function App() {
+function MainAppContent() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [selectedCategory, setSelectedCategory] = useState('Vêtements');
 
@@ -74,6 +76,7 @@ export default function App() {
           price: product.price,
           qty: product.qty || 1,
           size: product.size || '4-5 ans',
+          imageUrl: product.imageUrl,
           prompt: product.prompt
         }
       ];
@@ -94,14 +97,14 @@ export default function App() {
 
   return (
     <div className="relative font-body bg-background text-foreground min-h-screen">
-      {/* Floating Screen Switcher for convenient exploration of all app sections */}
+      {/* Floating Screen Switcher for instant access to all pages including Admin */}
       <div className="fixed bottom-6 left-6 z-40 bg-[#1A1A2E]/95 text-white backdrop-blur-md px-3 py-2 rounded-2xl shadow-2xl border border-white/20 flex flex-wrap items-center gap-1.5 max-w-sm sm:max-w-none">
         <span className="text-[10px] font-bold text-secondary uppercase tracking-wider px-1 hidden sm:inline">
-          Navigation :
+          Écrans :
         </span>
         <button
           onClick={() => handleNavigate('home')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             currentScreen === 'home'
               ? 'bg-primary text-[#1A1A2E] shadow-sm'
               : 'hover:bg-white/10 text-white/80'
@@ -111,7 +114,7 @@ export default function App() {
         </button>
         <button
           onClick={() => handleNavigate('category', 'Vêtements')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             currentScreen === 'category'
               ? 'bg-primary text-[#1A1A2E] shadow-sm'
               : 'hover:bg-white/10 text-white/80'
@@ -121,7 +124,7 @@ export default function App() {
         </button>
         <button
           onClick={() => handleNavigate('promotions')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             currentScreen === 'promotions'
               ? 'bg-secondary text-[#1A1A2E] shadow-sm'
               : 'hover:bg-white/10 text-white/80'
@@ -131,13 +134,23 @@ export default function App() {
         </button>
         <button
           onClick={() => handleNavigate('account')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             currentScreen === 'account'
               ? 'bg-secondary text-[#1A1A2E] shadow-sm'
               : 'hover:bg-white/10 text-white/80'
           }`}
         >
           👤 Mon compte
+        </button>
+        <button
+          onClick={() => handleNavigate('admin')}
+          className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+            currentScreen === 'admin'
+              ? 'bg-[#F4A261] text-white shadow-sm'
+              : 'bg-white/20 hover:bg-[#F4A261] text-white'
+          }`}
+        >
+          ⚙️ Espace Admin
         </button>
       </div>
 
@@ -197,6 +210,10 @@ export default function App() {
         />
       )}
 
+      {currentScreen === 'admin' && (
+        <AdminPage onNavigate={handleNavigate} />
+      )}
+
       {/* Product Quick View Modal (PRD §6.4) */}
       {quickViewProduct && (
         <ProductQuickViewModal
@@ -225,5 +242,13 @@ export default function App() {
         onClose={() => setIsWhatsAppOpen(false)}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <StoreProvider>
+      <MainAppContent />
+    </StoreProvider>
   );
 }
