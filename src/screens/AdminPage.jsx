@@ -4,6 +4,7 @@ import Icon from '@global/Icon';
 import Image from '@global/Image';
 import KidLogo from '@components/KidLogo';
 import { t } from '@global/t';
+import AdminLoginPage from '@screens/AdminLoginPage';
 
 export const displayName = 'Kid First — Panneau d\'administration';
 export const screenSize = 'desktop';
@@ -28,8 +29,16 @@ export default function AdminPage({ onNavigate }) {
     updateCategory,
     updateSiteContent,
     updateOrderStatus,
-    resetToFactoryDefaults
+    resetToFactoryDefaults,
+    isAdminAuthenticated,
+    logoutAdmin,
+    changeAdminPassword,
   } = useStore();
+
+  // Auth guard — show login page if not authenticated
+  if (!isAdminAuthenticated) {
+    return <AdminLoginPage onLoginSuccess={() => {}} />;
+  }
 
   const [activeTab, setActiveTab] = useState('products');
   const [editingProduct, setEditingProduct] = useState(null);
@@ -83,6 +92,16 @@ export default function AdminPage({ onNavigate }) {
           >
             <Icon i="shopping-bag" size={15} />
             <span>{t('Voir la boutique en direct')}</span>
+          </button>
+
+          <button
+            onClick={() => { logoutAdmin(); onNavigate && onNavigate('home'); }}
+            className="flex items-center gap-2 text-xs font-headings font-bold px-4 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 border"
+            style={{ borderColor: '#FCA5A5', background: '#FFF0F0', color: '#DC2626' }}
+            title="Se déconnecter"
+          >
+            <Icon i="log-out" size={15} />
+            <span className="hidden sm:inline">Déconnexion</span>
           </button>
         </div>
       </header>

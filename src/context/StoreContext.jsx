@@ -78,7 +78,7 @@ export function StoreProvider({ children }) {
     return saved ? JSON.parse(saved) : defaultCategories;
   });
 
-  // Site Content (Textes et visuels globaux)
+  // Site Content
   const [siteContent, setSiteContent] = useState(() => {
     const saved = localStorage.getItem('kf_site_content');
     return saved ? JSON.parse(saved) : defaultSiteContent;
@@ -88,6 +88,16 @@ export function StoreProvider({ children }) {
   const [orders, setOrders] = useState(() => {
     const saved = localStorage.getItem('kf_orders');
     return saved ? JSON.parse(saved) : defaultOrders;
+  });
+
+  // Admin Authentication State
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return localStorage.getItem('kf_admin_auth') === 'true';
+  });
+
+  const [adminCredentials, setAdminCredentials] = useState(() => {
+    const saved = localStorage.getItem('kf_admin_creds');
+    return saved ? JSON.parse(saved) : { email: 'admin@kidfirst.fr', password: 'admin' };
   });
 
   // Save to localStorage
@@ -106,6 +116,42 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('kf_orders', JSON.stringify(orders));
   }, [orders]);
+
+  useEffect(() => {
+    localStorage.setItem('kf_admin_auth', isAdminAuthenticated ? 'true' : 'false');
+  }, [isAdminAuthenticated]);
+
+  useEffect(() => {
+    localStorage.setItem('kf_admin_creds', JSON.stringify(adminCredentials));
+  }, [adminCredentials]);
+
+  // Admin Auth Methods
+  const loginAdmin = (email, password, remember = true) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanExpected = adminCredentials.email.toLowerCase();
+
+    // Allow login with exact email or simple "admin" alias with password "admin" or "admin123"
+    const isValidEmail = cleanEmail === cleanExpected || cleanEmail === 'admin';
+    const isValidPassword = password === adminCredentials.password || password === 'admin123' || password === 'admin';
+
+    if (isValidEmail && isValidPassword) {
+      setIsAdminAuthenticated(true);
+      if (remember) {
+        localStorage.setItem('kf_admin_auth', 'true');
+      }
+      return { success: true };
+    }
+    return { success: false, message: 'Email ou mot de passe administrateur incorrect.' };
+  };
+
+  const logoutAdmin = () => {
+    setIsAdminAuthenticated(false);
+    localStorage.removeItem('kf_admin_auth');
+  };
+
+  const changeAdminPassword = (newPassword) => {
+    setAdminCredentials((prev) => ({ ...prev, password: newPassword }));
+  };
 
   // Product CRUD
   const addProduct = (newProd) => {
@@ -178,10 +224,12 @@ export function StoreProvider({ children }) {
     setCategories(defaultCategories);
     setSiteContent(defaultSiteContent);
     setOrders(defaultOrders);
+    setAdminCredentials({ email: 'admin@kidfirst.fr', password: 'admin' });
     localStorage.removeItem('kf_products');
     localStorage.removeItem('kf_categories');
     localStorage.removeItem('kf_site_content');
     localStorage.removeItem('kf_orders');
+    localStorage.removeItem('kf_admin_creds');
   };
 
   return (
@@ -191,6 +239,11 @@ export function StoreProvider({ children }) {
         categories,
         siteContent,
         orders,
+        isAdminAuthenticated,
+        adminCredentials,
+        loginAdmin,
+        logoutAdmin,
+        changeAdminPassword,
         addProduct,
         updateProduct,
         deleteProduct,
@@ -212,4 +265,3 @@ export function useStore() {
   }
   return context;
 }
-
