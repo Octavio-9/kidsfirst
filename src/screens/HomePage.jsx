@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import KidNavbar from '@components/KidNavbar';
 import HeroBanner from '@components/HeroBanner';
 import CategoryGrid from '@components/CategoryGrid';
@@ -17,9 +17,7 @@ export default function HomePage({
   onQuickView,
   onOpenWhatsApp
 }) {
-  const [selectedCategory, setSelectedCategory] = useState('Tous');
-
-  const scrollToSection = () => {
+  const scrollToProducts = () => {
     const el = document.getElementById('products-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -31,31 +29,35 @@ export default function HomePage({
         activePage="home"
         onNavigate={onNavigate}
         onOpenCart={onOpenCart}
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
       />
 
       <main className="flex-1">
+        {/* Hero Banner with CTA linking to Collection & Promotions */}
         <HeroBanner
-          onExploreCollection={scrollToSection}
-          onExplorePromos={() => {
-            setSelectedCategory('Promotions');
-            scrollToSection();
-          }}
+          onExploreCollection={scrollToProducts}
+          onExplorePromos={() => onNavigate && onNavigate('promotions')}
         />
+
         <PromoStrip />
+
+        {/* Quick Access Category Grid - Clicking navigates directly to that category page! */}
         <CategoryGrid
-          selectedCategory={selectedCategory}
-          onSelectCategory={(cat) => {
-            setSelectedCategory(cat);
-            scrollToSection();
+          onSelectCategory={(catLabel) => {
+            if (onNavigate) onNavigate('category', catLabel);
           }}
         />
+
+        {/* Home Product Sections */}
         <div id="products-section">
           <ProductSections
-            selectedCategory={selectedCategory}
             onAddToCart={onAddToCart}
             onQuickView={onQuickView}
+            onNavigateToCategory={(catLabel) => {
+              if (onNavigate) onNavigate('category', catLabel);
+            }}
+            onNavigateToPromos={() => {
+              if (onNavigate) onNavigate('promotions');
+            }}
           />
         </div>
       </main>
@@ -64,4 +66,3 @@ export default function HomePage({
     </div>
   );
 }
-
